@@ -93,7 +93,7 @@ GROQ_API_KEY=your_groq_api_key
 AVIATIONSTACK_API_KEY=your_aviationstack_api_key
 TAVILY_API_KEY=your_tavily_api_key
 OPENWEATHER_API_KEY=your_openweather_api_key
-DEFAULT_ORIGIN_IATA=DAC
+DEFAULT_ORIGIN_IATA=HYD
 ```
 
 ## Installation
