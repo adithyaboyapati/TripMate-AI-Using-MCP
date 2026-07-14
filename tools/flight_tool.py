@@ -117,6 +117,10 @@ CITY_MAIN_AIRPORT = {
     "rome": "FCO",
     "madrid": "MAD",
     "frankfurt": "FRA",
+    "hyderabad": "HYD",
+    "amsterdam": "AMS",
+    "zurich": "ZRH",
+    "vienna": "VIE",
 }
 
 
