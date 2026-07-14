@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TripMate AI — Plan your perfect trip with AI. Search flights, discover hotels, and get a complete day-by-day itinerary powered by LangGraph multi-agent system.">
+    <title>TripMate AI — Multi-Agent Travel Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=20260714">
+</head>
+
+<body>
+
+    <!-- Aurora Background -->
+    <div class="page-bg" aria-hidden="true">
+        <div class="aurora a1"></div>
+        <div class="aurora a2"></div>
+        <div class="aurora a3"></div>
+        <canvas id="starCanvas"></canvas>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">✈</div>
+            <span class="brand-name">TripMate<em>AI</em></span>
+        </div>
+        <div class="nav-tags">
+            <span class="ntag">LangGraph</span>
+            <span class="ntag">Groq LLM</span>
+            <span class="ntag ntag-green" id="navStatus">● Live</span>
+        </div>
+    </nav>
+
+    <main class="app-wrap">
+
+        <!-- HERO -->
+        <section class="hero">
+            <p class="hero-eyebrow">✦ Powered by 4 Specialized AI Agents ✦</p>
+            <h1 class="hero-h1">
+                Your AI-Powered<br>
+                <span class="hero-span">Travel Companion</span>
+            </h1>
+            <p class="hero-p">Describe any trip in plain English. Get live flights, real hotels, accurate weather, and a full day-by-day itinerary — instantly.</p>
+            <div class="hero-chips">
+                <span class="hchip">✈️ Live Flights</span>
+                <span class="hchip">🏨 Real Hotels</span>
+                <span class="hchip">🌤️ Live Weather</span>
+                <span class="hchip">📅 Day-by-Day Plan</span>
+            </div>
+        </section>
+
+        <!-- SPLIT LAYOUT: Input | Agents -->
+        <div class="split-layout">
+
+            <!-- INPUT COLUMN -->
+            <div class="input-col">
+                <div class="col-label">
+                    <span class="col-dot"></span> WHERE DO YOU WANT TO GO?
+                    <span class="status-chip" id="statusPill">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Ready</span>
+                    </span>
+                </div>
+
+                <textarea
+                    id="userInput"
+                    class="main-textarea"
+                    placeholder="Plan a 7-day trip to Japan from Hyderabad under $2000, including flights, hotels and sightseeing..."
+                    maxlength="1000"
+                    rows="6"
+                ></textarea>
+
+                <div class="textarea-footer">
+                    <span class="char-counter"><span id="charCount">0</span>/1000</span>
+                    <span class="hint-text">Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+                </div>
+
+                <button id="sendBtn" onclick="sendMessage()">
+                    <span id="btnIcon">🚀</span>
+                    <span id="btnText">Generate Travel Plan</span>
+                    <span id="btnLoader" class="spin hidden"></span>
+                    <svg id="btnArrow" class="btn-arrow" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M10 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+                <!-- Quick Prompts -->
+                <div id="quickPromptsSection" class="quick-section">
+                    <div class="quick-label">✦ QUICK TRIPS</div>
+                    <div class="quick-grid">
+                        <button class="qbtn" onclick="setPrompt('Plan a complete 7 days Japan trip from Hyderabad including flights, hotels and sightseeing under $2000.')">🗾 Japan 7D</button>
+                        <button class="qbtn" onclick="setPrompt('Plan a 5 days Dubai trip from Hyderabad with flights, luxury hotels and top sightseeing.')">🏙️ Dubai 5D</button>
+                        <button class="qbtn" onclick="setPrompt('Plan a 7 days Thailand trip from Hyderabad with budget hotels and sightseeing.')">🏝️ Thailand 7D</button>
+                        <button class="qbtn" onclick="setPrompt('Plan a 10 days Europe trip from India covering Paris, Rome and Barcelona.')">🗺️ Europe 10D</button>
+                        <button class="qbtn" onclick="setPrompt('Plan a 5 days Singapore trip from Hyderabad with flights and hotels.')">🦁 Singapore 5D</button>
+                        <button class="qbtn" onclick="setPrompt('Give me all live global flight information.')">🌍 Live Flights</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENTS COLUMN -->
+            <div class="agents-col">
+                <!-- Idle state -->
+                <div id="agentsIdle" class="agents-idle">
+                    <div class="idle-glyph">🌐</div>
+                    <p class="idle-title">4 Agents On Standby</p>
+                    <p class="idle-sub">Type your destination and generate a plan to activate the agent pipeline.</p>
+                    <div class="agent-grid">
+                        <div class="agent-card ac-blue"><span>✈️</span><br>Flight Agent</div>
+                        <div class="agent-card ac-violet"><span>🏨</span><br>Hotel Agent</div>
+                        <div class="agent-card ac-teal"><span>📝</span><br>Itinerary Agent</div>
+                        <div class="agent-card ac-amber"><span>✨</span><br>Formatter Agent</div>
+                    </div>
+                </div>
+
+                <!-- Active stepper -->
+                <div id="agentStepper" class="agent-stepper hidden">
+                    <div class="stepper-top">
+                        <span class="stepper-label">AGENTS WORKING</span>
+                        <span class="bounce-dots"><b></b><b></b><b></b></span>
+                    </div>
+                    <div class="steps-list">
+                        <div class="astep" id="step-flight">
+                            <div class="astep-left">
+                                <div class="astep-circle">✈️</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Flight Search Agent</div>
+                                <div class="astep-status" id="status-flight">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-flight">·</div>
+                        </div>
+                        <div class="astep" id="step-hotel">
+                            <div class="astep-left">
+                                <div class="astep-circle">🏨</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Hotel Search Agent</div>
+                                <div class="astep-status" id="status-hotel">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-hotel">·</div>
+                        </div>
+                        <div class="astep" id="step-itinerary">
+                            <div class="astep-left">
+                                <div class="astep-circle">📝</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Itinerary Agent</div>
+                                <div class="astep-status" id="status-itinerary">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-itinerary">·</div>
+                        </div>
+                        <div class="astep" id="step-final">
+                            <div class="astep-left">
+                                <div class="astep-circle">✨</div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Formatter Agent</div>
+                                <div class="astep-status" id="status-final">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-final">·</div>
+                        </div>
+                    </div>
+                    <div class="loading-msg" id="loadingMsg">Initializing pipeline...</div>
+                </div>
+            </div>
+
+        </div><!-- /split-layout -->
+
+        <!-- Error strip -->
+        <div id="errorBox" class="error-strip hidden" role="alert"></div>
+
+        <!-- Results -->
+        <section id="resultSection" class="results-card hidden">
+            <div class="results-top">
+                <div>
+                    <h2 class="results-h2">🗺️ Your AI Travel Plan</h2>
+                    <div class="results-meta">
+                        <span class="rmeta" id="threadInfo">Thread: —</span>
+                        <span class="rmeta" id="llmCallsInfo">Agents: —</span>
+                    </div>
+                </div>
+                <div class="results-actions">
+                    <button class="ract copy-btn" id="copyBtn" onclick="copyResult()">📋 Copy</button>
+                    <button class="ract share-btn" id="shareBtn" onclick="shareResult()">🔗 Share</button>
+                    <button class="ract pdf-btn" id="downloadBtn" onclick="downloadPDF()">⬇️ PDF</button>
+                    <button class="ract new-btn" onclick="newTrip()">✨ New</button>
+                </div>
+            </div>
+
+            <div class="tab-row">
+                <button class="tab-btn active" data-tab="full" onclick="switchTab('full')">📋 Full Plan</button>
+                <button class="tab-btn" data-tab="flights" onclick="switchTab('flights')">✈️ Flights</button>
+                <button class="tab-btn" data-tab="hotels" onclick="switchTab('hotels')">🏨 Hotels</button>
+                <button class="tab-btn" data-tab="itinerary" onclick="switchTab('itinerary')">📅 Itinerary</button>
+            </div>
+
+            <div id="pdfContent" class="pdf-content">
+                <h1 class="pdf-title">AI Travel Plan — TripMate AI</h1>
+                <div class="tab-panel" id="tab-full"><div id="resultBox" class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-flights"><div id="flightBox" class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-hotels"><div id="hotelBox" class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-itinerary"><div id="itineraryBox" class="result-box"></div></div>
+            </div>
+        </section>
+
+        <!-- History -->
+        <section class="history-section" id="historySection">
+            <div class="history-header">
+                <span>🕓 Recent Trips</span>
+                <button class="history-clear" onclick="clearHistory()">Clear All</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-empty">Your recent trips will appear here.</div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="sf-brand">✈️ TripMate<strong>AI</strong></div>
+        <div class="sf-stack">
+            <span>FastAPI</span><span>LangGraph</span><span>Groq</span><span>Tavily</span><span>AviationStack</span><span>MCP</span>
+        </div>
+        <div class="sf-copy">Built with ❤️ · LangGraph Multi-Agent Orchestration</div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="/static/script.js?v=20260714"></script>
+
+</body>
+</html>
