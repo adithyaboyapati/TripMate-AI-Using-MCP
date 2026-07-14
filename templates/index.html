@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TripMate AI — Plan your perfect trip with AI. Search flights, discover hotels, and get a complete day-by-day itinerary powered by LangGraph multi-agent system.">
+    <meta name="description" content="TripMate AI — Plan your perfect trip with AI. Search flights, discover hotels, check weather, find restaurants, and get a complete day-by-day itinerary powered by LangGraph multi-agent system.">
     <title>TripMate AI — Multi-Agent Travel Planner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css?v=20260714">
+    <link rel="stylesheet" href="/static/style.css?v=20260714b">
 </head>
 
 <body>
@@ -31,7 +31,10 @@
         <div class="nav-tags">
             <span class="ntag">LangGraph</span>
             <span class="ntag">Groq LLM</span>
+            <span class="ntag">MCP</span>
             <span class="ntag ntag-green" id="navStatus">● Live</span>
+            <!-- Feature 6: Logout button -->
+            <button class="ntag" id="logoutBtn" onclick="handleLogout()" style="cursor:pointer; background:rgba(244,63,94,0.08); border-color:rgba(244,63,94,0.3); color:#fda4af;">⎋ Logout</button>
         </div>
     </nav>
 
@@ -39,16 +42,18 @@
 
         <!-- HERO -->
         <section class="hero">
-            <p class="hero-eyebrow">✦ Powered by 4 Specialized AI Agents ✦</p>
+            <p class="hero-eyebrow">✦ Powered by 8 Specialized AI Agents ✦</p>
             <h1 class="hero-h1">
                 Your AI-Powered<br>
                 <span class="hero-span">Travel Companion</span>
             </h1>
-            <p class="hero-p">Describe any trip in plain English. Get live flights, real hotels, accurate weather, and a full day-by-day itinerary — instantly.</p>
+            <p class="hero-p">Describe any trip in plain English. Get live flights, real hotels, accurate weather, local restaurants, currency tips, and a full day-by-day itinerary — instantly.</p>
             <div class="hero-chips">
                 <span class="hchip">✈️ Live Flights</span>
                 <span class="hchip">🏨 Real Hotels</span>
                 <span class="hchip">🌤️ Live Weather</span>
+                <span class="hchip">🍽️ Restaurants</span>
+                <span class="hchip">💱 Currency</span>
                 <span class="hchip">📅 Day-by-Day Plan</span>
             </div>
         </section>
@@ -105,23 +110,42 @@
                 <!-- Idle state -->
                 <div id="agentsIdle" class="agents-idle">
                     <div class="idle-glyph">🌐</div>
-                    <p class="idle-title">4 Agents On Standby</p>
+                    <p class="idle-title">8 Agents On Standby</p>
                     <p class="idle-sub">Type your destination and generate a plan to activate the agent pipeline.</p>
                     <div class="agent-grid">
+                        <div class="agent-card ac-blue"><span>🧭</span><br>Router</div>
                         <div class="agent-card ac-blue"><span>✈️</span><br>Flight Agent</div>
                         <div class="agent-card ac-violet"><span>🏨</span><br>Hotel Agent</div>
-                        <div class="agent-card ac-teal"><span>📝</span><br>Itinerary Agent</div>
-                        <div class="agent-card ac-amber"><span>✨</span><br>Formatter Agent</div>
+                        <div class="agent-card ac-teal"><span>🌤️</span><br>Weather Agent</div>
+                        <div class="agent-card ac-amber"><span>🍽️</span><br>Restaurant</div>
+                        <div class="agent-card ac-violet"><span>💱</span><br>Currency</div>
+                        <div class="agent-card ac-teal"><span>📝</span><br>Itinerary</div>
+                        <div class="agent-card ac-amber"><span>✨</span><br>Formatter</div>
                     </div>
                 </div>
 
-                <!-- Active stepper -->
+                <!-- Active stepper — Feature 5: driven by real SSE events -->
                 <div id="agentStepper" class="agent-stepper hidden">
                     <div class="stepper-top">
                         <span class="stepper-label">AGENTS WORKING</span>
                         <span class="bounce-dots"><b></b><b></b><b></b></span>
                     </div>
                     <div class="steps-list">
+
+                        <!-- Step: Router (Feature 3) -->
+                        <div class="astep" id="step-router">
+                            <div class="astep-left">
+                                <div class="astep-circle">🧭</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Query Router</div>
+                                <div class="astep-status" id="status-router">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-router">·</div>
+                        </div>
+
+                        <!-- Step: Flight -->
                         <div class="astep" id="step-flight">
                             <div class="astep-left">
                                 <div class="astep-circle">✈️</div>
@@ -133,6 +157,8 @@
                             </div>
                             <div class="astep-tag" id="badge-flight">·</div>
                         </div>
+
+                        <!-- Step: Hotel -->
                         <div class="astep" id="step-hotel">
                             <div class="astep-left">
                                 <div class="astep-circle">🏨</div>
@@ -144,6 +170,47 @@
                             </div>
                             <div class="astep-tag" id="badge-hotel">·</div>
                         </div>
+
+                        <!-- Step: Weather -->
+                        <div class="astep" id="step-weather">
+                            <div class="astep-left">
+                                <div class="astep-circle">🌤️</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Weather Agent</div>
+                                <div class="astep-status" id="status-weather">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-weather">·</div>
+                        </div>
+
+                        <!-- Step: Restaurant (Feature 2) -->
+                        <div class="astep" id="step-restaurant">
+                            <div class="astep-left">
+                                <div class="astep-circle">🍽️</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Restaurant Finder</div>
+                                <div class="astep-status" id="status-restaurant">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-restaurant">·</div>
+                        </div>
+
+                        <!-- Step: Currency (Feature 2) -->
+                        <div class="astep" id="step-currency">
+                            <div class="astep-left">
+                                <div class="astep-circle">💱</div>
+                                <div class="astep-vline"></div>
+                            </div>
+                            <div class="astep-body">
+                                <div class="astep-name">Currency Advisor</div>
+                                <div class="astep-status" id="status-currency">Waiting...</div>
+                            </div>
+                            <div class="astep-tag" id="badge-currency">·</div>
+                        </div>
+
+                        <!-- Step: Itinerary -->
                         <div class="astep" id="step-itinerary">
                             <div class="astep-left">
                                 <div class="astep-circle">📝</div>
@@ -155,6 +222,8 @@
                             </div>
                             <div class="astep-tag" id="badge-itinerary">·</div>
                         </div>
+
+                        <!-- Step: Final -->
                         <div class="astep" id="step-final">
                             <div class="astep-left">
                                 <div class="astep-circle">✨</div>
@@ -165,6 +234,7 @@
                             </div>
                             <div class="astep-tag" id="badge-final">·</div>
                         </div>
+
                     </div>
                     <div class="loading-msg" id="loadingMsg">Initializing pipeline...</div>
                 </div>
@@ -183,6 +253,7 @@
                     <div class="results-meta">
                         <span class="rmeta" id="threadInfo">Thread: —</span>
                         <span class="rmeta" id="llmCallsInfo">Agents: —</span>
+                        <span class="rmeta" id="routeInfo">Route: —</span>
                     </div>
                 </div>
                 <div class="results-actions">
@@ -193,19 +264,26 @@
                 </div>
             </div>
 
+            <!-- 7 Tabs: Full + 6 agent outputs -->
             <div class="tab-row">
-                <button class="tab-btn active" data-tab="full" onclick="switchTab('full')">📋 Full Plan</button>
-                <button class="tab-btn" data-tab="flights" onclick="switchTab('flights')">✈️ Flights</button>
-                <button class="tab-btn" data-tab="hotels" onclick="switchTab('hotels')">🏨 Hotels</button>
-                <button class="tab-btn" data-tab="itinerary" onclick="switchTab('itinerary')">📅 Itinerary</button>
+                <button class="tab-btn active" data-tab="full"       onclick="switchTab('full')">📋 Full Plan</button>
+                <button class="tab-btn"         data-tab="flights"    onclick="switchTab('flights')">✈️ Flights</button>
+                <button class="tab-btn"         data-tab="hotels"     onclick="switchTab('hotels')">🏨 Hotels</button>
+                <button class="tab-btn"         data-tab="weather"    onclick="switchTab('weather')">🌤️ Weather</button>
+                <button class="tab-btn"         data-tab="restaurants" onclick="switchTab('restaurants')">🍽️ Restaurants</button>
+                <button class="tab-btn"         data-tab="currency"   onclick="switchTab('currency')">💱 Currency</button>
+                <button class="tab-btn"         data-tab="itinerary"  onclick="switchTab('itinerary')">📅 Itinerary</button>
             </div>
 
             <div id="pdfContent" class="pdf-content">
                 <h1 class="pdf-title">AI Travel Plan — TripMate AI</h1>
-                <div class="tab-panel" id="tab-full"><div id="resultBox" class="result-box"></div></div>
-                <div class="tab-panel hidden" id="tab-flights"><div id="flightBox" class="result-box"></div></div>
-                <div class="tab-panel hidden" id="tab-hotels"><div id="hotelBox" class="result-box"></div></div>
-                <div class="tab-panel hidden" id="tab-itinerary"><div id="itineraryBox" class="result-box"></div></div>
+                <div class="tab-panel"        id="tab-full">       <div id="resultBox"     class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-flights">    <div id="flightBox"     class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-hotels">     <div id="hotelBox"      class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-weather">    <div id="weatherBox"    class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-restaurants"><div id="restaurantBox" class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-currency">   <div id="currencyBox"   class="result-box"></div></div>
+                <div class="tab-panel hidden" id="tab-itinerary">  <div id="itineraryBox"  class="result-box"></div></div>
             </div>
         </section>
 
@@ -225,14 +303,14 @@
     <footer class="site-footer">
         <div class="sf-brand">✈️ TripMate<strong>AI</strong></div>
         <div class="sf-stack">
-            <span>FastAPI</span><span>LangGraph</span><span>Groq</span><span>Tavily</span><span>AviationStack</span><span>MCP</span>
+            <span>FastAPI</span><span>LangGraph</span><span>Groq</span><span>Tavily</span><span>AviationStack</span><span>MCP</span><span>SSE</span>
         </div>
-        <div class="sf-copy">Built with ❤️ · LangGraph Multi-Agent Orchestration</div>
+        <div class="sf-copy">Built with ❤️ · LangGraph Multi-Agent Orchestration · 8 Specialized Agents</div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="/static/script.js?v=20260714"></script>
+    <script src="/static/script.js?v=20260714b"></script>
 
 </body>
 </html>

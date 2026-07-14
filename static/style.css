@@ -544,8 +544,8 @@ kbd {
 
 .agent-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
 }
 
 .agent-card {
@@ -712,6 +712,13 @@ kbd {
 
 .astep.active .astep-tag { border-color: rgba(59,130,246,0.42); color: #93c5fd; }
 .astep.done   .astep-tag { border-color: rgba(34,197,94,0.42);  color: #86efac; }
+
+/* Feature 3: Skipped step — dimmed when conditional routing bypasses it */
+.astep.skipped .astep-circle { opacity: 0.32; border-style: dashed; }
+.astep.skipped .astep-status { color: #2d3a52; font-style: italic; }
+.astep.skipped .astep-name   { opacity: 0.45; }
+.astep.skipped .astep-tag    { color: #2d3a52; border-color: rgba(255,255,255,0.05); }
+.astep.skipped .astep-vline  { background: rgba(255,255,255,0.04); }
 
 .loading-msg {
     margin-top: 12px;
